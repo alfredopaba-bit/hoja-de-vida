@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mi Hoja de Vida</title>
+  <meta name="description" content="Diligencie su hoja de vida y guárdela en PDF para enviarla.">
+  <meta name="theme-color" content="#1f3a5f">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Mi Hoja de Vida</h1>
+    <p>Llene sus datos, genere el PDF y envíelo.</p>
+    <button id="btnInstalar" class="btn-instalar" hidden>Instalar app</button>
+  </header>
+
+  <main>
+    <p class="aviso">Sus datos se guardan solo en este celular. Los campos con <b>*</b> son obligatorios.</p>
+
+    <!-- 1. DATOS PERSONALES -->
+    <details class="seccion" open data-sec="personal">
+      <summary>1. Datos personales</summary>
+      <div class="cuerpo">
+        <div class="foto-box">
+          <img id="fotoPreview" alt="" hidden>
+          <div id="fotoVacia" class="foto-vacia">Sin foto</div>
+          <div class="foto-botones">
+            <label class="btn">Tomar foto
+              <input type="file" accept="image/*" capture="user" id="fotoCamara" hidden>
+            </label>
+            <label class="btn">Subir de la galería
+              <input type="file" accept="image/*" id="fotoGaleria" hidden>
+            </label>
+            <button type="button" class="btn btn-link" id="fotoQuitar" hidden>Quitar foto</button>
+          </div>
+          <small>Use una foto tipo documento: de frente, fondo claro y buena luz.</small>
+        </div>
+
+        <label>Nombre completo *<input data-k="nombre" autocomplete="name" required></label>
+        <label>Cargo u ocupación que busca<input data-k="ocupacion" placeholder="Ej: Auxiliar administrativo"></label>
+        <div class="fila">
+          <label>Tipo de identificación *
+            <select data-k="tipoId" required>
+              <option value="">Seleccione…</option>
+              <option>Cédula de ciudadanía</option>
+              <option>Cédula de extranjería</option>
+              <option>Tarjeta de identidad</option>
+              <option>Pasaporte</option>
+              <option>Permiso por Protección Temporal (PPT)</option>
+            </select>
+          </label>
+          <label>Número de identificación *<input data-k="numId" inputmode="numeric" required></label>
+        </div>
+        <label>Lugar de expedición<input data-k="expedicion" placeholder="Ej: Bogotá D.C."></label>
+        <div class="fila">
+          <label>Fecha de nacimiento<input type="date" data-k="nacimiento"></label>
+          <label>Estado civil
+            <select data-k="estadoCivil">
+              <option value="">Seleccione…</option>
+              <option>Soltero(a)</option>
+              <option>Casado(a)</option>
+              <option>Unión libre</option>
+              <option>Separado(a)</option>
+              <option>Divorciado(a)</option>
+              <option>Viudo(a)</option>
+            </select>
+          </label>
+        </div>
+        <label>Teléfono de contacto *<input type="tel" data-k="telefono" autocomplete="tel" required></label>
+        <label>Correo electrónico *<input type="email" data-k="correo" autocomplete="email" required></label>
+        <label>Dirección de residencia *<input data-k="direccion" autocomplete="street-address" required></label>
+        <label>Ciudad / municipio<input data-k="ciudad" placeholder="Ej: Medellín, Antioquia"></label>
+        <label>LinkedIn u otra red profesional (opcional)<input data-k="linkedin" inputmode="url"></label>
+      </div>
+    </details>
+
+    <!-- 2. PERFIL -->
+    <details class="seccion" data-sec="perfil">
+      <summary>2. ¿Cómo soy? (perfil y cualidades)</summary>
+      <div class="cuerpo">
+        <p class="ayuda">Marque las cualidades que mejor lo describen (máximo 8).</p>
+        <div id="cualidades" class="chips"></div>
+        <label>Otras cualidades (separadas por coma)<input data-k="otrasCualidades"></label>
+        <label>Perfil profesional
+          <textarea data-k="perfil" rows="5" placeholder="Un párrafo corto que diga quién es, qué sabe hacer y qué aporta a la empresa."></textarea>
+        </label>
+        <button type="button" class="btn" id="btnSugerir">Ayúdame a escribir mi perfil</button>
+        <label>Habilidades y conocimientos (uno por línea)
+          <textarea data-k="habilidades" rows="4" placeholder="Manejo de Excel&#10;Atención al cliente&#10;Licencia de conducción B1"></textarea>
+        </label>
+      </div>
+    </details>
+
+    <!-- 3. EDUCACIÓN -->
+    <details class="seccion" data-sec="educacion">
+      <summary>3. Educación</summary>
+      <div class="cuerpo">
+        <p class="ayuda">Empiece por el estudio más reciente o el más alto.</p>
+        <div class="lista" data-lista="educacion"></div>
+        <button type="button" class="btn" data-agregar="educacion">+ Agregar estudio</button>
+        <h3>Cursos y certificaciones</h3>
+        <div class="lista" data-lista="cursos"></div>
+        <button type="button" class="btn" data-agregar="cursos">+ Agregar curso</button>
+        <h3>Idiomas</h3>
+        <div class="lista" data-lista="idiomas"></div>
+        <button type="button" class="btn" data-agregar="idiomas">+ Agregar idioma</button>
+      </div>
+    </details>
+
+    <!-- 4. EXPERIENCIA -->
+    <details class="seccion" data-sec="experiencia">
+      <summary>4. Experiencia laboral</summary>
+      <div class="cuerpo">
+        <p class="ayuda">Empiece por el trabajo más reciente. Si no tiene experiencia, deje esta sección vacía.</p>
+        <div class="lista" data-lista="experiencia"></div>
+        <button type="button" class="btn" data-agregar="experiencia">+ Agregar trabajo</button>
+      </div>
+    </details>
+
+    <!-- 5. REFERENCIAS -->
+    <details class="seccion" data-sec="referencias">
+      <summary>5. Referencias</summary>
+      <div class="cuerpo">
+        <p class="ayuda">Lo usual es poner 2 personales y 2 familiares (o laborales). Pídales permiso antes.</p>
+        <div class="lista" data-lista="referencias"></div>
+        <button type="button" class="btn" data-agregar="referencias">+ Agregar referencia</button>
+      </div>
+    </details>
+
+    <button type="button" class="btn btn-peligro" id="btnBorrar">Borrar todos mis datos</button>
+  </main>
+
+  <footer class="barra">
+    <button type="button" class="btn btn-principal" id="btnGenerar">Generar PDF</button>
+  </footer>
+
+  <!-- Panel de resultado -->
+  <div id="panel" class="panel" hidden>
+    <div class="panel-caja">
+      <h2>¡Su hoja de vida está lista!</h2>
+      <p id="panelNombre"></p>
+      <button type="button" class="btn btn-principal" id="btnCompartir">Enviar (WhatsApp, correo…)</button>
+      <button type="button" class="btn" id="btnDescargar">Guardar en el celular</button>
+      <button type="button" class="btn" id="btnVer">Ver el PDF</button>
+      <button type="button" class="btn btn-link" id="btnCerrar">Volver a editar</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
