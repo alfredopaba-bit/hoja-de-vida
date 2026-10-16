@@ -95,6 +95,18 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--azul); bord
 .item-cab b { color: var(--azul); }
 .item-cab button { border: 0; background: none; color: var(--rojo); font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; }
 
+.firma-marco {
+  position: relative; width: 100%; aspect-ratio: 5 / 2;
+  border: 2px dashed var(--borde); border-radius: 10px; background: #fff;
+}
+.firma-marco canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.firma-guia {
+  position: absolute; left: 16px; right: 16px; bottom: 22%; border-top: 1px solid var(--borde);
+  padding-top: 4px; font-size: .8rem; color: var(--gris); pointer-events: none;
+}
+.firma-botones { display: flex; gap: 8px; margin: 10px 0 8px; }
+.firma-botones .btn { flex: 1; }
+
 .barra {
   position: fixed; left: 0; right: 0; bottom: 0;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));

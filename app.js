@@ -61,7 +61,7 @@ let pdfUrl = null;
 
 // ---------- Guardado local ----------
 function vacio() {
-  return { cualidades: [], foto: '', educacion: [], cursos: [], idiomas: [], experiencia: [], referencias: [] };
+  return { cualidades: [], foto: '', firma: '', educacion: [], cursos: [], idiomas: [], experiencia: [], referencias: [] };
 }
 function cargar() {
   try {
@@ -317,6 +317,113 @@ function iniciarFoto() {
   pintarFoto();
 }
 
+// ---------- Firma con el dedo ----------
+// El lienzo tiene un tamaño interno fijo; la pantalla solo lo escala.
+const FIRMA_W = 1000, FIRMA_H = 400;
+
+function iniciarFirma() {
+  const lienzo = $('#firmaLienzo');
+  lienzo.width = FIRMA_W;
+  lienzo.height = FIRMA_H;
+  const ctx = lienzo.getContext('2d');
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#0d1b4c';
+  ctx.lineWidth = 5;
+
+  if (datos.firma) {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0);
+    img.src = datos.firma;
+  }
+
+  let dibujando = false, ultimo = null, hayTrazo = !!datos.firma;
+  const punto = e => {
+    const r = lienzo.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * FIRMA_W / r.width, y: (e.clientY - r.top) * FIRMA_H / r.height };
+  };
+  lienzo.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    lienzo.setPointerCapture(e.pointerId);
+    dibujando = true;
+    ultimo = punto(e);
+    ctx.beginPath();
+    ctx.arc(ultimo.x, ultimo.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fill();
+  });
+  lienzo.addEventListener('pointermove', e => {
+    if (!dibujando) return;
+    const p = punto(e);
+    // Curva suave entre el punto anterior y el actual
+    const medio = { x: (ultimo.x + p.x) / 2, y: (ultimo.y + p.y) / 2 };
+    ctx.beginPath();
+    ctx.moveTo(ultimo.x, ultimo.y);
+    ctx.quadraticCurveTo(ultimo.x, ultimo.y, medio.x, medio.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ultimo = p;
+    hayTrazo = true;
+  });
+  const terminar = () => {
+    if (!dibujando) return;
+    dibujando = false;
+    if (hayTrazo) {
+      datos.firma = lienzo.toDataURL('image/png');
+      guardar();
+    }
+  };
+  lienzo.addEventListener('pointerup', terminar);
+  lienzo.addEventListener('pointercancel', terminar);
+
+  $('#firmaBorrar').onclick = () => {
+    ctx.clearRect(0, 0, FIRMA_W, FIRMA_H);
+    hayTrazo = false;
+    datos.firma = '';
+    guardar();
+  };
+}
+
+// Recorta el espacio vacío alrededor de la firma para ponerla en el PDF
+function firmaRecortada() {
+  if (!datos.firma) return Promise.resolve(null);
+  return new Promise(ok => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = FIRMA_W;
+      c.height = FIRMA_H;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const px = ctx.getImageData(0, 0, FIRMA_W, FIRMA_H).data;
+      let x0 = FIRMA_W, y0 = FIRMA_H, x1 = -1, y1 = -1;
+      for (let y = 0; y < FIRMA_H; y++) {
+        for (let x = 0; x < FIRMA_W; x++) {
+          if (px[(y * FIRMA_W + x) * 4 + 3] > 20) {
+            if (x < x0) x0 = x;
+            if (x > x1) x1 = x;
+            if (y < y0) y0 = y;
+            if (y > y1) y1 = y;
+          }
+        }
+      }
+      if (x1 < 0) return ok(null);
+      const m = 6, w = x1 - x0 + 1 + 2 * m, h = y1 - y0 + 1 + 2 * m;
+      const r = document.createElement('canvas');
+      r.width = w;
+      r.height = h;
+      const rc = r.getContext('2d');
+      // Fondo blanco + JPEG: pesa muy poco dentro del PDF (un PNG transparente lo infla a 1 MB)
+      rc.fillStyle = '#fff';
+      rc.fillRect(0, 0, w, h);
+      rc.drawImage(c, x0 - m, y0 - m, w, h, 0, 0, w, h);
+      ok({ url: r.toDataURL('image/jpeg', 0.9), w, h });
+    };
+    img.onerror = () => ok(null);
+    img.src = datos.firma;
+  });
+}
+
 // ---------- Validación ----------
 function validar() {
   $$('.seccion').forEach(s => s.classList.remove('error'));
@@ -365,7 +472,7 @@ function edad(v) {
 }
 
 // ---------- PDF ----------
-function generarPDF() {
+function generarPDF(firma) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const AZUL = [31, 58, 95], GRIS = [91, 102, 117], TEXTO = [29, 36, 48], LINEA = [207, 214, 223];
@@ -562,8 +669,14 @@ function generarPDF() {
   }
 
   // Firma
-  salto(32);
-  y += 14;
+  salto(42);
+  y += 24;
+  if (firma) {
+    // Cabe en un recuadro de 70 x 20 mm sin deformarse; apoyada sobre la línea
+    const esc = Math.min(70 / firma.w, 20 / firma.h);
+    const fw = firma.w * esc, fh = firma.h * esc;
+    doc.addImage(firma.url, 'JPEG', M, y - fh + 2, fw, fh);
+  }
   doc.setDrawColor(TEXTO[0], TEXTO[1], TEXTO[2]);
   doc.setLineWidth(0.3);
   doc.line(M, y, M + 70, y);
@@ -608,10 +721,10 @@ function nombreArchivo() {
 
 // ---------- Acciones del panel ----------
 function iniciarAcciones() {
-  $('#btnGenerar').onclick = () => {
+  $('#btnGenerar').onclick = async () => {
     if (!validar()) return;
     try {
-      const blob = generarPDF();
+      const blob = generarPDF(await firmaRecortada());
       pdfArchivo = new File([blob], nombreArchivo(), { type: 'application/pdf' });
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       pdfUrl = URL.createObjectURL(blob);
@@ -678,5 +791,6 @@ iniciarCampos();
 iniciarCualidades();
 iniciarListas();
 iniciarFoto();
+iniciarFirma();
 iniciarAcciones();
 iniciarInstalacion();

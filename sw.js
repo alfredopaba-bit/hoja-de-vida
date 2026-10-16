@@ -1,6 +1,6 @@
 // Guarda los archivos de la app para que funcione sin internet.
 // Con internet siempre trae la versión más nueva; sin internet usa la guardada.
-const VERSION = 'hv-v1';
+const VERSION = 'hv-v2';
 const ARCHIVOS = [
   './', 'index.html', 'styles.css', 'app.js', 'jspdf.umd.min.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png'

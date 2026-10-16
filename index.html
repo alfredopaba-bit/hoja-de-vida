@@ -131,6 +131,22 @@
       </div>
     </details>
 
+    <!-- 6. FIRMA -->
+    <details class="seccion" data-sec="firma">
+      <summary>6. Firma</summary>
+      <div class="cuerpo">
+        <p class="ayuda">Firme con el dedo dentro del recuadro. Saldrá sobre la línea de firma del PDF. Es opcional.</p>
+        <div class="firma-marco">
+          <canvas id="firmaLienzo"></canvas>
+          <span class="firma-guia">Firme aquí</span>
+        </div>
+        <div class="firma-botones">
+          <button type="button" class="btn" id="firmaBorrar">Borrar y volver a firmar</button>
+        </div>
+        <small class="ayuda">La firma se guarda sola. Si no quiere que salga en el PDF, bórrela.</small>
+      </div>
+    </details>
+
     <button type="button" class="btn btn-peligro" id="btnBorrar">Borrar todos mis datos</button>
   </main>
 
